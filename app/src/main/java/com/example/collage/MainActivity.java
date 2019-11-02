@@ -31,12 +31,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final String TAG = "MAIN_ACTIVITY";
 
-    private ImageButton mImageButton1, mImageButton2, mImageButton3, mImageButton4;
+    private ImageButton mImageButton1, mImageButton2, mImageButton3, mImageButton4; //image button variables
 
-    private List<ImageButton> mImageButtons;
-    private ArrayList<String> mImageFilePaths;
+    private List<ImageButton> mImageButtons; //list of all image buttons
+    private ArrayList<String> mImageFilePaths; //list of file paths for image files
 
-    private String mCurrentImagePath;
+    private String mCurrentImagePath; //String to hold the file path for an image
 
     private final static String BUNDLE_KEY_IMAGE_FILE_PATHS = "bundle key image file paths";
     private final static String BUNDLE_KEY_MOST_RECENT_FILE_PATH = "bundle key most recent file path";
@@ -46,41 +46,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mImageButton1 = findViewById(R.id.imageButton1);
+        mImageButton1 = findViewById(R.id.imageButton1); //connect to front end
         mImageButton2 = findViewById(R.id.imageButton2);
         mImageButton3 = findViewById(R.id.imageButton3);
         mImageButton4 = findViewById(R.id.imageButton4);
 
-        mImageButtons = new ArrayList<>(Arrays.asList(mImageButton1, mImageButton2, mImageButton3, mImageButton4));
+        mImageButtons = new ArrayList<>(Arrays.asList(mImageButton1, mImageButton2, mImageButton3, mImageButton4)); //add buttons to list
 
         for(ImageButton button : mImageButtons){
-            button.setOnClickListener(this);
+            button.setOnClickListener(this); //listener in this activity
         }
 
 
-        if(savedInstanceState != null){
+        if(savedInstanceState != null){ //retrieve bundles
             mCurrentImagePath = savedInstanceState.getString(BUNDLE_KEY_MOST_RECENT_FILE_PATH);
             mImageFilePaths = savedInstanceState.getStringArrayList(BUNDLE_KEY_IMAGE_FILE_PATHS);
         }
 
         if (mCurrentImagePath == null){
-            mCurrentImagePath = "";
+            mCurrentImagePath = ""; //empty string instead of null object
         }
 
         if(mImageFilePaths == null){
-            mImageFilePaths = new ArrayList<>(Arrays.asList("","","",""));
+            mImageFilePaths = new ArrayList<>(Arrays.asList("","","","")); //same as above
         }
     }
 
     @Override
-    public void onClick(View view){
-        int requestCodeButtonIndex = mImageButtons.indexOf(view);
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    public void onClick(View view){ //listener for all buttons
+        int requestCodeButtonIndex = mImageButtons.indexOf(view); //takes imagebutton from list index
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE); //send to image capture intent
 
-        if(takePictureIntent.resolveActivity(getPackageManager()) != null){
+        if(takePictureIntent.resolveActivity(getPackageManager()) != null){ //makes sure there's an image
             try{
-                File imageFile = createImageFile();
-                if(imageFile != null){
+                File imageFile = createImageFile(); //create file for image
+                if(imageFile != null){ //use URI for image, retrieve from intent
                     Uri imageURI = FileProvider.getUriForFile(this, "com.example.collage.fileprovider", imageFile);
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageURI);
                     startActivityForResult(takePictureIntent, requestCodeButtonIndex);
@@ -94,15 +94,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private File createImageFile() throws IOException {
-        String imageFilename = "COLLAGE_" + new Date().getTime();
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File imageFile = File.createTempFile(
+        String imageFilename = "COLLAGE_" + new Date().getTime(); //unique file name due to time created
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); //file path
+        File imageFile = File.createTempFile( //create file name/type/path
                 imageFilename,
                 ".jpg",
                 storageDir
         );
 
-        mCurrentImagePath = imageFile.getAbsolutePath();
+        mCurrentImagePath = imageFile.getAbsolutePath(); //formalize path
         return imageFile;
     }
 
@@ -112,15 +112,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (resultCode == RESULT_OK) {
             Log.d(TAG, "onActivityResult for request code " + requestCode +
                     " and current path " + mCurrentImagePath);
-            mImageFilePaths.set(requestCode, mCurrentImagePath);
-            requestSaveImageToMediaStore();
+            mImageFilePaths.set(requestCode, mCurrentImagePath); //retrieve file path, add to list
+            requestSaveImageToMediaStore(); //send file path to media store
         } else if (resultCode == RESULT_CANCELED) {
             mCurrentImagePath = "";
         }
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus){
+    public void onWindowFocusChanged(boolean hasFocus){ //handle rotate
         Log.d(TAG, "focus changed " + hasFocus);
         if(hasFocus){
             for(int index = 0; index < mImageButtons.size(); index++){
@@ -131,11 +131,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void loadImage(int index) {
 
-        ImageButton imageButton = mImageButtons.get(index);
-        String path = mImageFilePaths.get(index);
+        ImageButton imageButton = mImageButtons.get(index); //use index of image button
+        String path = mImageFilePaths.get(index); //retrieve index of image button to find file
 
-        if (path != null && !path.isEmpty()){
-            Picasso.get()
+        if (path != null && !path.isEmpty()){ //check if empty
+            Picasso.get() //use picasso to load file into image button
                     .load(new File(path))
                     .error(android.R.drawable.stat_notify_error)
                     .fit()
@@ -154,17 +154,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outBundle){
+    public void onSaveInstanceState(Bundle outBundle){ //send info to bundles
         super.onSaveInstanceState(outBundle);
         outBundle.putString(BUNDLE_KEY_MOST_RECENT_FILE_PATH, mCurrentImagePath);
         outBundle.putStringArrayList(BUNDLE_KEY_IMAGE_FILE_PATHS, mImageFilePaths);
     }
 
     private void requestSaveImageToMediaStore(){
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == //permission already granted
                 PackageManager.PERMISSION_GRANTED){
-            saveImage();
-        } else {
+            saveImage(); //permission already granted? Save.
+        } else { //Ask for permissions
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
         }
     }
@@ -172,13 +172,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
         if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-            saveImage();
-        } else {
+            saveImage(); //permission granted? save.
+        } else { //let user no image won't be saved
             Toast.makeText(this, "Images will NOT be saved to media store", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void saveImage(){
+    private void saveImage(){ //save image to file path
         try{
             MediaStore.Images.Media.insertImage(getContentResolver(), mCurrentImagePath, "Collage", "Collage");
         } catch (IOException e){
